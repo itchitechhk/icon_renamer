@@ -164,7 +164,7 @@ class IconRenamerApp:
             with open(CONFIG_PATH, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            self.log(f"儲存設定失敗: {e}")
+            self.log(f"Failed to save settings: {e}")
         finally:
             self._saving = False
 
@@ -190,7 +190,7 @@ class IconRenamerApp:
         self.model_var = tk.StringVar(value=self._settings["model"])
         ttk.Entry(settings, textvariable=self.model_var, width=50).grid(row=2, column=1, sticky="ew", padx=5)
 
-        ttk.Label(settings, text="並行數:").grid(row=3, column=0, sticky="w", pady=4)
+        ttk.Label(settings, text="Concurrency:").grid(row=3, column=0, sticky="w", pady=4)
         self.concurrency_var = tk.StringVar(value=str(self._settings.get("concurrency", 10)))
         concurrency_row = ttk.Frame(settings)
         concurrency_row.grid(row=3, column=1, sticky="w", padx=5)
@@ -204,14 +204,14 @@ class IconRenamerApp:
         )
         self.concurrency_spin.pack(side="left")
         self.concurrency_spin.bind("<FocusOut>", self.save_settings)
-        ttk.Label(concurrency_row, text="（同時呼叫數，預設 10，會記住上次設定）").pack(
+        ttk.Label(concurrency_row, text="(parallel API calls; default 10; remembered)").pack(
             side="left", padx=(8, 0)
         )
 
         settings.columnconfigure(1, weight=1)
 
         # --- Prompt ---
-        prompt_frame = ttk.LabelFrame(self.root, text="Prompt (可隨時修改後重新預覽)", padding=10)
+        prompt_frame = ttk.LabelFrame(self.root, text="Prompt (edit anytime, then preview again)", padding=10)
         prompt_frame.pack(fill="x", padx=10, pady=5)
 
         self.prompt_text = scrolledtext.ScrolledText(prompt_frame, height=3, wrap="word")
@@ -225,7 +225,7 @@ class IconRenamerApp:
         # --- Categories ---
         cat_frame = ttk.LabelFrame(
             self.root,
-            text="Categories (模型會自動分類；關閉後只重新命名)",
+            text="Categories (model auto-categorizes; off = rename only)",
             padding=10,
         )
         cat_frame.pack(fill="x", padx=10, pady=5)
@@ -235,7 +235,7 @@ class IconRenamerApp:
         )
         self.categories_toggle = ttk.Checkbutton(
             cat_frame,
-            text="啟用自動分類",
+            text="Enable auto-categorization",
             variable=self.categories_enabled_var,
             command=self.on_categories_toggle,
         )
@@ -248,9 +248,9 @@ class IconRenamerApp:
         self.category_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
         self.category_entry.bind("<Return>", lambda _e: self.add_category())
 
-        self.add_category_btn = ttk.Button(cat_row, text="新增", command=self.add_category)
+        self.add_category_btn = ttk.Button(cat_row, text="Add", command=self.add_category)
         self.add_category_btn.pack(side="left", padx=2)
-        self.remove_category_btn = ttk.Button(cat_row, text="刪除選取", command=self.remove_category)
+        self.remove_category_btn = ttk.Button(cat_row, text="Remove selected", command=self.remove_category)
         self.remove_category_btn.pack(side="left", padx=2)
 
         list_row = ttk.Frame(cat_frame)
@@ -273,7 +273,7 @@ class IconRenamerApp:
 
         self.drop_label = ttk.Label(
             drop_frame,
-            text="拖拉資料夾到這裡\n或點擊下方按鈕選擇",
+            text="Drop a folder here\nor use the button below",
             relief="ridge",
             padding=20,
             anchor="center",
@@ -283,10 +283,10 @@ class IconRenamerApp:
 
         btn_frame = ttk.Frame(drop_frame)
         btn_frame.pack()
-        ttk.Button(btn_frame, text="選擇資料夾", command=self.select_folder).pack(side="left", padx=5)
-        ttk.Button(btn_frame, text="預覽前 10 張", command=self.preview_first_10).pack(side="left", padx=5)
-        ttk.Button(btn_frame, text="開始處理全部", command=self.process_all).pack(side="left", padx=5)
-        self.stop_btn = ttk.Button(btn_frame, text="停止", command=self.request_stop, state="disabled")
+        ttk.Button(btn_frame, text="Choose folder", command=self.select_folder).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Preview first 10", command=self.preview_first_10).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Process all", command=self.process_all).pack(side="left", padx=5)
+        self.stop_btn = ttk.Button(btn_frame, text="Stop", command=self.request_stop, state="disabled")
         self.stop_btn.pack(side="left", padx=5)
 
         # --- Progress ---
@@ -313,14 +313,14 @@ class IconRenamerApp:
         self.progress_count_label.pack(fill="x")
 
         # --- Preview Tree ---
-        tree_frame = ttk.LabelFrame(self.root, text="預覽結果 (前 10 張)", padding=5)
+        tree_frame = ttk.LabelFrame(self.root, text="Preview results (first 10)", padding=5)
         tree_frame.pack(fill="both", expand=True, padx=10, pady=5)
 
         cols = ("original", "suggested", "category")
         self.tree = ttk.Treeview(tree_frame, columns=cols, show="headings", height=8)
-        self.tree.heading("original", text="原檔名")
-        self.tree.heading("suggested", text="建議名稱")
-        self.tree.heading("category", text="分類")
+        self.tree.heading("original", text="Original")
+        self.tree.heading("suggested", text="Suggested name")
+        self.tree.heading("category", text="Category")
         self.tree.column("original", width=220)
         self.tree.column("suggested", width=360)
         self.tree.column("category", width=160)
@@ -336,7 +336,7 @@ class IconRenamerApp:
         self.log_text = scrolledtext.ScrolledText(log_frame, height=6, state="disabled")
         self.log_text.pack(fill="both", expand=True)
 
-        self.status_var = tk.StringVar(value="就緒")
+        self.status_var = tk.StringVar(value="Ready")
         ttk.Label(self.root, textvariable=self.status_var).pack(fill="x", padx=10, pady=2)
 
     def on_categories_toggle(self):
@@ -359,7 +359,7 @@ class IconRenamerApp:
         name = sanitize_category(raw)
         existing = {c.lower() for c in self.get_categories()}
         if name.lower() in existing:
-            messagebox.showinfo("提示", f"分類已存在: {name}")
+            messagebox.showinfo("Notice", f"Category already exists: {name}")
             return
         self.category_listbox.insert("end", name)
         self.category_entry.delete(0, "end")
@@ -386,10 +386,10 @@ class IconRenamerApp:
             if path.is_dir():
                 self.load_folder(path)
             else:
-                self.log("請拖拉資料夾，而不是單一檔案")
+                self.log("Please drop a folder, not a single file")
 
     def select_folder(self):
-        folder = filedialog.askdirectory(title="選擇包含 icon 的資料夾")
+        folder = filedialog.askdirectory(title="Choose a folder with icons")
         if folder:
             self.load_folder(Path(folder))
 
@@ -399,9 +399,9 @@ class IconRenamerApp:
             [p for p in path.iterdir() if p.is_file() and p.suffix.lower() in IMAGE_EXTS],
             key=natural_sort_key,
         )
-        self.log(f"已載入資料夾: {path}")
-        self.log(f"找到 {len(self.image_files)} 張圖片")
-        self.status_var.set(f"已載入 {len(self.image_files)} 張圖片")
+        self.log(f"Loaded folder: {path}")
+        self.log(f"Found {len(self.image_files)} images")
+        self.status_var.set(f"Loaded {len(self.image_files)} images")
         self.tree.delete(*self.tree.get_children())
         self.preview_results.clear()
 
@@ -520,8 +520,8 @@ class IconRenamerApp:
         if not self.processing:
             return
         self.stop_event.set()
-        self.status_var.set("正在停止...（取消佇列中的任務，進行中的請求會跑完）")
-        self.log("已要求停止")
+        self.status_var.set("Stopping... (queued tasks canceled; in-flight requests will finish)")
+        self.log("Stop requested")
         executor = self._executor
         if executor is not None:
             try:
@@ -531,16 +531,16 @@ class IconRenamerApp:
 
     def preview_first_10(self):
         if not self.image_files:
-            messagebox.showwarning("提示", "請先選擇或拖拉資料夾")
+            messagebox.showwarning("Notice", "Choose or drop a folder first")
             return
         if self.processing:
-            messagebox.showinfo("提示", "正在處理中，請先停止或稍候")
+            messagebox.showinfo("Notice", "Already processing — stop or wait")
             return
 
         self.stop_event.clear()
         self.set_busy(True)
         workers = self.get_concurrency()
-        self.status_var.set(f"正在預覽前 10 張（並行 {workers}）...")
+        self.status_var.set(f"Previewing first 10 (concurrency {workers})...")
         self.tree.delete(*self.tree.get_children())
         self.preview_results.clear()
         self.set_progress(0, 10)
@@ -573,7 +573,7 @@ class IconRenamerApp:
                         lambda p=img, n=name, c=category, done=completed, t=total: (
                             self.tree.insert("", "end", values=(p.name, n, c or "-")),
                             self.set_progress(done, t),
-                            self.status_var.set(f"預覽中 {done}/{t} ..."),
+                            self.status_var.set(f"Previewing {done}/{t} ..."),
                         ),
                     )
             finally:
@@ -586,7 +586,7 @@ class IconRenamerApp:
                 self.root.after(
                     0,
                     lambda: self.status_var.set(
-                        "預覽已停止" if stopped else "預覽完成，可調整 Prompt / Categories 後重新預覽"
+                        "Preview stopped" if stopped else "Preview done — tweak Prompt / Categories and preview again"
                     ),
                 )
                 self.root.after(0, lambda: self.set_busy(False))
@@ -607,7 +607,7 @@ class IconRenamerApp:
             except Exception:
                 continue
         raise PermissionError(
-            f"無法建立可寫輸出資料夾。\n已嘗試：\n{primary}\n{fallback}"
+            f"Could not create a writable output folder.\nTried:\n{primary}\n{fallback}"
         )
 
     def _save_one_result(
@@ -646,33 +646,33 @@ class IconRenamerApp:
 
     def process_all(self):
         if not self.image_files:
-            messagebox.showwarning("提示", "請先選擇資料夾")
+            messagebox.showwarning("Notice", "Choose a folder first")
             return
         if self.processing:
-            messagebox.showinfo("提示", "正在處理中，請先停止或稍候")
+            messagebox.showinfo("Notice", "Already processing — stop or wait")
             return
 
         categories = self.active_categories()
         try:
             output_dir = self.resolve_output_dir()
         except Exception as e:
-            messagebox.showerror("無法建立輸出資料夾", str(e))
+            messagebox.showerror("Cannot create output folder", str(e))
             return
 
         workers = self.get_concurrency()
         if self.categories_enabled() and categories:
-            cat_note = f"並依分類放入子資料夾（目前 {len(categories)} 個分類）"
+            cat_note = f"and sort into category subfolders ({len(categories)} categories)"
         elif self.categories_enabled():
-            cat_note = "（已啟用分類但尚未新增分類，全部直接放在輸出資料夾）"
+            cat_note = "(categorization on, but no categories yet — all files go in the output folder)"
         else:
-            cat_note = "（自動分類已關閉，全部直接放在輸出資料夾）"
+            cat_note = "(auto-categorization off — all files go in the output folder)"
         if not messagebox.askyesno(
-            "確認",
-            f"確定要處理全部 {len(self.image_files)} 張圖片嗎？\n"
-            f"並行請求數: {workers}\n"
-            f"原檔不會更動，結果會輸出到：\n{output_dir}\n"
+            "Confirm",
+            f"Process all {len(self.image_files)} images?\n"
+            f"Concurrency: {workers}\n"
+            f"Originals stay untouched. Output goes to:\n{output_dir}\n"
             f"{cat_note}\n"
-            f"建議先預覽確認品質。",
+            f"Preview first if you want to check quality.",
         ):
             return
 
@@ -683,11 +683,11 @@ class IconRenamerApp:
         self.set_busy(True)
         self._completed_count = 0
         self.set_progress(0, total)
-        self.status_var.set(f"開始批次處理（並行 {workers}）...")
-        self.log(f"輸出資料夾: {output_dir}")
+        self.status_var.set(f"Starting batch (concurrency {workers})...")
+        self.log(f"Output folder: {output_dir}")
         self.log(f"Concurrency: {workers}")
         if categories:
-            self.log(f"分類: {', '.join(categories)}")
+            self.log(f"Categories: {', '.join(categories)}")
 
         def worker():
             results = []
@@ -726,7 +726,7 @@ class IconRenamerApp:
                     except Exception as e:
                         self.root.after(
                             0,
-                            lambda o=img.name, e=e: self.log(f"輸出失敗 {o}: {e}"),
+                            lambda o=img.name, e=e: self.log(f"Failed to write {o}: {e}"),
                         )
 
                     with self._progress_lock:
@@ -736,12 +736,12 @@ class IconRenamerApp:
                         0,
                         lambda d=done, t=total: (
                             self.set_progress(d, t),
-                            self.status_var.set(f"處理中 {d}/{t} ..."),
+                            self.status_var.set(f"Processing {d}/{t} ..."),
                         ),
                     )
             except Exception as e:
-                self.root.after(0, lambda: self.log(f"批次處理中斷: {e}"))
-                self.root.after(0, lambda: messagebox.showerror("處理失敗", str(e)))
+                self.root.after(0, lambda: self.log(f"Batch interrupted: {e}"))
+                self.root.after(0, lambda: messagebox.showerror("Processing failed", str(e)))
             finally:
                 try:
                     executor.shutdown(wait=False, cancel_futures=True)
@@ -752,14 +752,14 @@ class IconRenamerApp:
                 try:
                     with open(mapping_path, "w", encoding="utf-8") as f:
                         json.dump(results, f, ensure_ascii=False, indent=2)
-                    self.root.after(0, lambda: self.log(f"對照表已儲存: {mapping_path}"))
+                    self.root.after(0, lambda: self.log(f"Mapping saved: {mapping_path}"))
                 except Exception as e:
-                    self.root.after(0, lambda: self.log(f"儲存對照表失敗: {e}"))
+                    self.root.after(0, lambda: self.log(f"Failed to save mapping: {e}"))
 
                 if stopped:
-                    msg = f"已停止（完成 {len(results)}/{total}）→ {output_dir}"
+                    msg = f"Stopped ({len(results)}/{total} done) → {output_dir}"
                 else:
-                    msg = f"全部處理完成 → {output_dir}"
+                    msg = f"All done → {output_dir}"
                 self.root.after(0, lambda: self.status_var.set(msg))
                 self.root.after(0, lambda: self.set_busy(False))
 
@@ -784,7 +784,7 @@ def main():
         root = TkinterDnD.Tk()
     else:
         root = tk.Tk()
-        print("提示: 未安裝 tkinterdnd2，拖拉功能不可用。可執行: pip install tkinterdnd2")
+        print("Note: tkinterdnd2 not installed; drag-and-drop disabled. Run: pip install tkinterdnd2")
 
     app = IconRenamerApp(root)
     root.mainloop()
