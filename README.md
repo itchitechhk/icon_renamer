@@ -2,6 +2,8 @@
 
 Desktop app that batch-renames (and optionally categorizes) game / pixel-art icons using a **local vision LLM** via [LM Studio](https://lmstudio.ai/) or any OpenAI-compatible API.
 
+![Icon Batch Renamer screenshot](docs/screenshot.png)
+
 Original files are never modified. Results are copied into `renamed_output/` with a `rename_mapping.json` log.
 
 ## Features
